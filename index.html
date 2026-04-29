@@ -3,6 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XPNT7HV7Z1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-XPNT7HV7Z1');
+</script>
 <title>UK BTL Rental Yield Calculator 2026 | Free Buy-to-Let Analysis Tool</title>
 <meta name="description" content="Free UK buy-to-let calculator. Gross yield, net yield, monthly cashflow, cash-on-cash ROI, Section 24 tax impact, ICR stress test. Updated for 2026 SDLT rates.">
 <meta name="keywords" content="rental yield calculator UK, buy to let calculator, BTL calculator 2026, section 24 calculator, rental ROI UK, landlord calculator, ICR stress test">
@@ -1277,15 +1285,168 @@ function calc(){
 }
 
 // ── FAQ accordion ─────────────────────────────────────────────────────────
-function toggleFaq(el){
-  const item=el.closest('.faq-item');
+function toggleFaq(faqEl){
+  const item=faqEl.closest('.faq-item');
   const isOpen=item.classList.contains('open');
   document.querySelectorAll('.faq-item').forEach(i=>i.classList.remove('open'));
-  if(!isOpen) item.classList.add('open');
+  if(!isOpen){
+    item.classList.add('open');
+    gtag('event','faq_open',{
+      event_category:'engagement',
+      event_label: faqEl.textContent.trim().substring(0,60)
+    });
+  }
 }
 
 // ── Init ─────────────────────────────────────────────────────────────────
 calc();
+
+// ── ANALYTICS ────────────────────────────────────────────────────────────
+
+// 1. Affiliate / CTA button
+document.querySelector('.btn-aff').addEventListener('click', function(){
+  gtag('event','affiliate_click',{
+    event_category:'conversion',
+    event_label:'compare_btl_rates_cta'
+  });
+});
+
+// 2. Footer links
+document.querySelectorAll('.footer-links a').forEach(function(a){
+  a.addEventListener('click', function(){
+    gtag('event','footer_link_click',{
+      event_category:'navigation',
+      event_label: this.textContent.trim()
+    });
+  });
+});
+
+// 3. Nav links
+document.querySelectorAll('.hd-nav a').forEach(function(a){
+  a.addEventListener('click', function(){
+    gtag('event','nav_click',{
+      event_category:'navigation',
+      event_label: this.textContent.trim()
+    });
+  });
+});
+
+// 4. Calculator engagement — fire once when user first changes any input
+var calcEngaged = false;
+document.querySelectorAll('input, select').forEach(function(inp){
+  inp.addEventListener('change', function(){
+    if(!calcEngaged){
+      calcEngaged = true;
+      gtag('event','calculator_first_interaction',{
+        event_category:'engagement',
+        event_label:'btl_calculator'
+      });
+    }
+    // Track specific field changes
+    gtag('event','calculator_input_changed',{
+      event_category:'calculator',
+      event_label: inp.id || inp.name || 'unknown_field'
+    });
+  });
+});
+
+// 5. Toggle switches — Ltd Co and Interest-Only are high-signal events
+document.getElementById('isLtd').addEventListener('change', function(){
+  gtag('event','toggle_ltd_company',{
+    event_category:'calculator',
+    event_label: this.checked ? 'ltd_on' : 'ltd_off'
+  });
+});
+document.getElementById('isIO').addEventListener('change', function(){
+  gtag('event','toggle_interest_only',{
+    event_category:'calculator',
+    event_label: this.checked ? 'io_on' : 'io_off'
+  });
+});
+
+// 6. Verdict — track what result users are seeing (fires on every calc)
+var lastVerdict = '';
+var origCalc = calc;
+calc = function(){
+  origCalc();
+  var v = document.getElementById('verdict').className.replace('verdict','').trim();
+  if(v && v !== lastVerdict){
+    lastVerdict = v;
+    gtag('event','verdict_shown',{
+      event_category:'calculator_result',
+      event_label: v  // 'good' | 'warn' | 'bad'
+    });
+  }
+};
+calc(); // re-run to capture initial verdict
+
+// 7. Scroll depth — 25%, 50%, 75%, 100%
+var scrollMarks = {25:false, 50:false, 75:false, 100:false};
+window.addEventListener('scroll', function(){
+  var pct = Math.round((window.scrollY + window.innerHeight) / document.body.scrollHeight * 100);
+  [25,50,75,100].forEach(function(mark){
+    if(pct >= mark && !scrollMarks[mark]){
+      scrollMarks[mark] = true;
+      gtag('event','scroll_depth',{
+        event_category:'engagement',
+        event_label: mark + '%'
+      });
+    }
+  });
+}, {passive:true});
+
+// 8. Ad slot visibility — IntersectionObserver fires when ad enters viewport
+// Tracks whether users actually scroll to each ad position
+var adObserver = new IntersectionObserver(function(entries){
+  entries.forEach(function(entry){
+    if(entry.isIntersecting){
+      gtag('event','ad_slot_visible',{
+        event_category:'ads',
+        event_label: entry.target.dataset.adSlot || 'unknown_slot'
+      });
+      adObserver.unobserve(entry.target); // fire once per slot
+    }
+  });
+}, {threshold: 0.5}); // 50% of ad must be visible
+
+document.querySelectorAll('.ad-slot').forEach(function(slot, i){
+  slot.dataset.adSlot = ['top_banner','results_rect','mid_banner'][i] || 'slot_'+i;
+  adObserver.observe(slot);
+});
+
+// 9. Time on page milestones — 30s, 60s, 3min
+var timeMarks = {30:false, 60:false, 180:false};
+var startTime = Date.now();
+setInterval(function(){
+  var sec = Math.round((Date.now() - startTime) / 1000);
+  [[30,'30s'],[60,'60s'],[180,'3min']].forEach(function(pair){
+    if(sec >= pair[0] && !timeMarks[pair[0]]){
+      timeMarks[pair[0]] = true;
+      gtag('event','time_on_page',{
+        event_category:'engagement',
+        event_label: pair[1]
+      });
+    }
+  });
+}, 5000);
+
+// 10. Section visibility — explainer and FAQ sections
+var sectionObserver = new IntersectionObserver(function(entries){
+  entries.forEach(function(entry){
+    if(entry.isIntersecting){
+      gtag('event','section_viewed',{
+        event_category:'engagement',
+        event_label: entry.target.id || 'unknown_section'
+      });
+      sectionObserver.unobserve(entry.target);
+    }
+  });
+}, {threshold: 0.3});
+
+['explainer','faq','calculator'].forEach(function(id){
+  var sec = document.getElementById(id);
+  if(sec) sectionObserver.observe(sec);
+});
 </script>
 
 </body>
