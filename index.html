@@ -90,6 +90,7 @@ body{
   font-weight: 800;
   color: var(--ink);
   letter-spacing: -.01em;
+  text-decoration: none;
 }
 .logo em{ color: var(--gold); font-style: normal; }
 .hd-nav{ display:flex; gap:24px; align-items:center; }
@@ -169,13 +170,8 @@ body{
 
 /* ── Ad slots ── */
 .ad-slot{
-  background: var(--paper2);
-  border: 1px dashed var(--paper3);
-  border-radius: var(--r2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--mono);
+  display: none;
+}
   font-size: 10px;
   color: var(--ink4);
   letter-spacing: .06em;
@@ -555,12 +551,14 @@ select{
   color:var(--gold);
   letter-spacing:.08em;
   margin-bottom:10px;
+  text-align:center;
 }
 .ec-title{
   font-family:var(--serif);
   font-size:20px;
   color:var(--ink);
   margin-bottom:8px;
+  text-align:center;
 }
 .formula{
   background:var(--paper);
@@ -571,11 +569,13 @@ select{
   color:var(--teal2);
   border-radius:0 var(--r) var(--r) 0;
   margin:10px 0;
+  text-align:center;
 }
 .ec-body{
   font-size:13px;
   color:var(--ink2);
   line-height:1.7;
+  text-align:center;
 }
 
 /* ── FAQ ── */
